@@ -81,9 +81,17 @@ public class JPSDiagNoObstacles<T extends Node> extends JPS<T> {
     }
 
     @Override
-    protected T jump(T neighbor, T current, Set<T> goals) {
-        if (neighbor == null || !neighbor.walkable) return null;
-        if (goals.contains(neighbor)) return neighbor;
+    protected T jump(T neighbor, T current, Set<T> goals, List<T> path) {
+        List<T> newList = join(path, neighbor);
+        if (neighbor == null || !neighbor.walkable){
+            System.out.println("not walkable! path=" + newList);
+            return null;
+        }
+
+        if (goals.contains(neighbor)){
+            System.out.println("in goals! path=" + newList);
+            return neighbor;
+        }
 
         int dx = neighbor.x - current.x;
         int dy = neighbor.y - current.y;
@@ -92,19 +100,33 @@ public class JPSDiagNoObstacles<T extends Node> extends JPS<T> {
         // check along diagonal
         if ((dx & dy) != 0) {
             // when moving diagonally, must check for vertical/horizontal jump points
-            if (jump(graph.getNode(neighbor.x + dx, neighbor.y), neighbor, goals) != null ||
-                    jump(graph.getNode(neighbor.x, neighbor.y + dy), neighbor, goals) != null) {
+            if (jump(graph.getNode(neighbor.x + dx, neighbor.y), neighbor, goals, newList) != null ||
+                    jump(graph.getNode(neighbor.x, neighbor.y + dy), neighbor, goals, newList) != null) {
                 return neighbor;
             }
         } else { // check along horizontal/vertical
             if (dx != 0) {
                 if ((graph.isWalkable(neighbor.x, neighbor.y - 1) && !graph.isWalkable(neighbor.x - dx, neighbor.y - 1)) ||
                         (graph.isWalkable(neighbor.x, neighbor.y + 1) && !graph.isWalkable(neighbor.x - dx, neighbor.y + 1))) {
+                    System.out.println("vertical jump point! path=" + newList);
+                    System.out.println("\tdetail:dx=" + dx + ",dy=" + dy);
+                    if ((graph.isWalkable(neighbor.x, neighbor.y - 1) && !graph.isWalkable(neighbor.x - dx, neighbor.y - 1))) {
+                        System.out.println("\tpoint,walkable,inwalkable:" + neighbor + "," + graph.getNode(neighbor.x,neighbor.y-1) + "," + graph.getNode(neighbor.x-dx, neighbor.y-1));
+                    } else {
+                        System.out.println("\tpoint,walkable,inwalkable:" + neighbor + "," + graph.getNode(neighbor.x,neighbor.y+1) + "," + graph.getNode(neighbor.x-dx, neighbor.y+1));
+                    }
                     return neighbor;
                 }
             } else if (dy != 0) {
                 if ((graph.isWalkable(neighbor.x - 1, neighbor.y) && !graph.isWalkable(neighbor.x - 1, neighbor.y - dy)) ||
                         (graph.isWalkable(neighbor.x + 1, neighbor.y) && !graph.isWalkable(neighbor.x + 1, neighbor.y - dy))) {
+                    System.out.println("horizontal jump point! path=" + newList);
+                    System.out.println("\tdetail:dx=" + dx + ",dy=" + dy);
+                    if ((graph.isWalkable(neighbor.x-1, neighbor.y ) && !graph.isWalkable(neighbor.x - 1, neighbor.y - dy))) {
+                        System.out.println("\tpoint,walkable,inwalkable:" + neighbor + "," + graph.getNode(neighbor.x-1,neighbor.y) + "," + graph.getNode(neighbor.x-1, neighbor.y-dy));
+                    } else {
+                        System.out.println("\tpoint,walkable,inwalkable:" + neighbor + "," + graph.getNode(neighbor.x+1,neighbor.y) + "," + graph.getNode(neighbor.x+1, neighbor.y-dy));
+                    }
                     return neighbor;
                 }
             }
@@ -112,9 +134,16 @@ public class JPSDiagNoObstacles<T extends Node> extends JPS<T> {
 
         // moving diagonally must make sure both of the vertical/horizontal neighbors is open to allow the path
         if (graph.isWalkable(neighbor.x + dx, neighbor.y) && graph.isWalkable(neighbor.x, neighbor.y + dy)) {
-            return jump(graph.getNode(neighbor.x + dx, neighbor.y + dy), neighbor, goals);
+            return jump(graph.getNode(neighbor.x + dx, neighbor.y + dy), neighbor, goals, newList);
         } else {
+            System.out.println("nodes inwalkable!dx=" + dx + ",dy=" + dy + "," + graph.getNode(neighbor.x+dx,neighbor.y) +","+graph.getNode(neighbor.x,neighbor.y+dy)+", path=" + newList);
             return null;
         }
+    }
+
+    private List<T> join(List<T> path, T newNode) {
+        List<T> newList = new ArrayList<>(path);
+        newList.add(newNode);
+        return newList;
     }
 }

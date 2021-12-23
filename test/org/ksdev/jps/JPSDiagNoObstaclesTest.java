@@ -92,18 +92,24 @@ public class JPSDiagNoObstaclesTest extends JPSDiagBaseTest {
 
     @Test
     public void map2() throws ExecutionException, InterruptedException {
-        Tile start = tileList2.get(38).get(34);
+//        Tile start = tileList2.get(38).get(34);
+        Tile start = getTile("R28C29");
         System.out.println(start.isWalkable());
-        Tile end = tileList2.get(36).get(30);
+//        Tile end = tileList2.get(36).get(30);
+        Tile end = getTile("R35C36");
         System.out.println(end.isWalkable());
 
         Future<Queue<Tile>> futurePath = jps2.findPath(start, end);
         Queue<Tile> path = futurePath.get();
 
-        for (Tile tile : path) {
-            System.out.println("X: " + tile.x + ", Y: " + tile.y);
-        }
+        System.out.println("path=" + path);
 
         assert path != null;
+    }
+
+    public Tile getTile(String RC) {
+        int row = Integer.parseInt(RC.substring(RC.indexOf("R") + 1, RC.indexOf("C")));
+        int col = Integer.parseInt(RC.substring(RC.indexOf("C") + 1));
+        return tileList2.get(row - 1).get(col - 1);
     }
 }

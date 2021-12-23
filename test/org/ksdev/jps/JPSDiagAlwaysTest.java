@@ -92,7 +92,7 @@ public class JPSDiagAlwaysTest extends JPSDiagBaseTest {
     }
 
     @Test
-    public void map2() throws ExecutionException, InterruptedException {
+    public void map2() {
         Tile start = tileList2.get(38).get(34);
         System.out.println(start.isWalkable());
         Tile end = tileList2.get(38).get(33);
@@ -101,9 +101,7 @@ public class JPSDiagAlwaysTest extends JPSDiagBaseTest {
         //Future<Queue<Tile>> futurePath = jps2.findPath(start, end);
         Queue<Tile> path = jps2.findPathSync(start, end);
 
-        for (Tile tile : path) {
-            System.out.println("X: " + tile.x + ", Y: " + tile.y);
-        }
+        System.out.println("path=" + path);
 
         assert path != null;
     }

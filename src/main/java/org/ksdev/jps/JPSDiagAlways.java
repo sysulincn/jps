@@ -60,7 +60,7 @@ public class JPSDiagAlways<T extends Node> extends JPS<T> {
     }
 
     @Override
-    protected T jump(T neighbor, T current, Set<T> goals) {
+    protected T jump(T neighbor, T current, Set<T> goals, List<T> path) {
         if (neighbor == null || !neighbor.walkable) return null;
         if (goals.contains(neighbor)) return neighbor;
 
@@ -75,8 +75,8 @@ public class JPSDiagAlways<T extends Node> extends JPS<T> {
                 return neighbor;
             }
             // when moving diagonally, must check for vertical/horizontal jump points
-            if (jump(graph.getNode(neighbor.x + dx, neighbor.y), neighbor, goals) != null ||
-                    jump(graph.getNode(neighbor.x, neighbor.y + dy), neighbor, goals) != null) {
+            if (jump(graph.getNode(neighbor.x + dx, neighbor.y), neighbor, goals, null) != null ||
+                    jump(graph.getNode(neighbor.x, neighbor.y + dy), neighbor, goals, null) != null) {
                 return neighbor;
             }
         } else { // check horizontally/vertically
@@ -94,6 +94,6 @@ public class JPSDiagAlways<T extends Node> extends JPS<T> {
         }
 
         // jump diagonally towards our goal
-        return jump(graph.getNode(neighbor.x + dx, neighbor.y + dy), neighbor, goals);
+        return jump(graph.getNode(neighbor.x + dx, neighbor.y + dy), neighbor, goals, null);
     }
 }

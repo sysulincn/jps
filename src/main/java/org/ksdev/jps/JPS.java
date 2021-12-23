@@ -32,19 +32,12 @@ public abstract class JPS<T extends Node> {
         return findPathSync(start, goal, false, false);
     }
 
-    public Queue<T> findPathSync(T start, T goal, boolean adjacentStop) {
-        return findPathSync(start, goal, adjacentStop, true);
-    }
-
     public Queue<T> findPathSync(T start, T goal, boolean adjacentStop, boolean diagonalStop) {
         Map<T, Double> fMap = new HashMap<>(); // distance to start + estimate to end
         Map<T, Double> gMap = new HashMap<>(); // distance to start (parent's g + distance from parent)
         Map<T, Double> hMap = new HashMap<>(); // estimate to end
 
-        Queue<T> open = new PriorityQueue<>((a, b) -> {
-            // we want the nodes with the lowest projected F value to be checked first
-            return Double.compare(fMap.getOrDefault(a, 0d), fMap.getOrDefault(b, 0d));
-        });
+        Queue<T> open = new PriorityQueue<>(Comparator.comparingDouble(a -> fMap.getOrDefault(a, 0d)));
         Set<T> closed = new HashSet<>();
         Map<T, T> parentMap = new HashMap<>();
         Set<T> goals = new HashSet<>();
@@ -62,7 +55,8 @@ public abstract class JPS<T extends Node> {
             return null;
         }
 
-        System.out.println("Start: " + start.x + "," + start.y);
+        System.out.println("Start: " + start);
+        System.out.println("Goal: " + goal);
         // push the start node into the open list
         open.add(start);
 
@@ -88,19 +82,19 @@ public abstract class JPS<T extends Node> {
     /**
      * Identify successors for the given node. Runs a JPS in direction of each available neighbor, adding any open
      * nodes found to the open list.
-     * @return All the nodes we have found jumpable from the current node
      */
     private void identifySuccessors(T node, T goal, Set<T> goals, Queue<T> open, Set<T> closed, Map<T, T> parentMap,
                                     Map<T, Double> fMap, Map<T, Double> gMap, Map<T, Double> hMap) {
         // get all neighbors to the current node
         Collection<T> neighbors = findNeighbors(node, parentMap);
-
+        System.out.println("identifying successor:current=" + node + " neighbors=" + neighbors);
         double d;
         double ng;
         for (T neighbor : neighbors) {
-            // jump in the direction of our neighbor
-            T jumpNode = jump(neighbor, node, goals);
-
+            // jump in the direction of our neighbor;
+            System.out.println("doing neighbor:" + node + "," + neighbor);
+            T jumpNode = jump(neighbor, node, goals, List.of(node));
+            System.out.println("jump point=" + jumpNode);
             // don't add a node we have already gotten to quicker
             if (jumpNode == null || closed.contains(jumpNode)) continue;
 
@@ -119,6 +113,7 @@ public abstract class JPS<T extends Node> {
 
                 if (!open.contains(jumpNode)) {
                     open.offer(jumpNode);
+                    System.out.println("offering jump node[" + jumpNode + "] to open list:" + open);
                 }
             }
         }
@@ -133,7 +128,7 @@ public abstract class JPS<T extends Node> {
     /**
      * Search towards the child from the parent, returning when a jump point is found.
      */
-    protected abstract T jump(T neighbor, T current, Set<T> goals);
+    protected abstract T jump(T neighbor, T current, Set<T> goals, List<T> path);
 
     /**
      * Returns a path of the parent nodes from a given node.
@@ -168,17 +163,12 @@ public abstract class JPS<T extends Node> {
 
     public static class JPSFactory {
         public static <T extends Node> JPS<T> getJPS(Graph<T> graph, Graph.Diagonal diagonal) {
-            switch (diagonal) {
-                case ALWAYS:
-                    return new JPSDiagAlways<>(graph);
-                case ONE_OBSTACLE:
-                    return new JPSDiagOneObstacle<>(graph);
-                case NO_OBSTACLES:
-                    return new JPSDiagNoObstacles<>(graph);
-                case NEVER:
-                    return new JPSDiagNever<>(graph);
-            }
-            return null;
+            return switch (diagonal) {
+                case ALWAYS -> new JPSDiagAlways<>(graph);
+                case ONE_OBSTACLE -> new JPSDiagOneObstacle<>(graph);
+                case NO_OBSTACLES -> new JPSDiagNoObstacles<>(graph);
+                case NEVER -> new JPSDiagNever<>(graph);
+            };
         }
     }
 }

@@ -60,7 +60,7 @@ public class JPSDiagOneObstacle<T extends Node> extends JPS<T> {
     }
 
     @Override
-    protected T jump(T neighbor, T current, Set<T> goals) {
+    protected T jump(T neighbor, T current, Set<T> goals, List<T> path) {
         if (neighbor == null || !neighbor.walkable) return null;
         if (goals.contains(neighbor)) return neighbor;
 
@@ -75,8 +75,8 @@ public class JPSDiagOneObstacle<T extends Node> extends JPS<T> {
                 return neighbor;
             }
             // when moving diagonally, must check for vertical/horizontal jump points
-            if (jump(graph.getNode(neighbor.x + dx, neighbor.y), neighbor, goals) != null ||
-                    jump(graph.getNode(neighbor.x, neighbor.y + dy), neighbor, goals) != null) {
+            if (jump(graph.getNode(neighbor.x + dx, neighbor.y), neighbor, goals, null) != null ||
+                    jump(graph.getNode(neighbor.x, neighbor.y + dy), neighbor, goals, null) != null) {
                 return neighbor;
             }
         } else { // check horizontally/vertically
@@ -96,7 +96,7 @@ public class JPSDiagOneObstacle<T extends Node> extends JPS<T> {
         // moving diagonally, must make sure one of the vertical/horizontal
         // neighbors is open to allow the path
         if (graph.isWalkable(neighbor.x + dx, neighbor.y) || graph.isWalkable(neighbor.x, neighbor.y + dy)) {
-            return jump(graph.getNode(neighbor.x + dx, neighbor.y + dy), neighbor, goals);
+            return jump(graph.getNode(neighbor.x + dx, neighbor.y + dy), neighbor, goals, null);
         } else {
             return null;
         }
